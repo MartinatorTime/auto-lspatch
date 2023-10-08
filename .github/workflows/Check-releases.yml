@@ -1,0 +1,77 @@
+name: Check for New Releases
+
+on:
+  # Uncomment this section if you want to trigger the workflow on pushes to the main branch.
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # Run daily, adjust as needed
+
+jobs:
+  check-releases:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@master
+
+      - name: Create File if Not Exist
+        run: |
+          if [ ! -f "all_releases.txt" ]; then
+            touch all_releases.txt
+            echo "File created"
+          fi
+
+      - name: Check for New Releases
+        id: check-releases
+        run: |
+          REPOS="LSPosed/LSPatch Xposed-Modules-Repo/io.github.tehcneko.telespeed shatyuka/Killergram Xposed-Modules-Repo/nep.timeline.re_telegram forkgram/TelegramAndroid NextAlone/Nagram Telegram-FOSS-Team/Telegram-FOSS"
+          RELEASES_FOUND=false # Assume no releases found initially
+
+          for REPO in $REPOS; do
+            LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" -H "Accept: application/vnd.github.v3+json")
+            if [[ $LATEST_RELEASE == *"message"* ]]; then
+              # Handle error
+              echo "Error checking releases for $REPO"
+              continue
+            fi
+            TAG_NAME=$(echo "$LATEST_RELEASE" | jq -r '.tag_name')
+            if [ -z "$TAG_NAME" ]; then
+              echo "No releases found for $REPO"
+            else
+              # Check if the release information already exists in the file
+              if grep -q "^$REPO: " all_releases.txt; then
+                EXISTING_TAG=$(grep "^$REPO: " all_releases.txt | cut -d ' ' -f 2)
+                if [ "$EXISTING_TAG" != "$TAG_NAME" ]; then
+                  # Replace the existing release information in the file
+                  sed -i "s|^$REPO: .*|$REPO: $TAG_NAME|" all_releases.txt
+                  RELEASES_FOUND=true # Releases were updated
+                fi
+              else
+                # Append the release information to the file
+                echo "$REPO: $TAG_NAME" >> all_releases.txt
+                RELEASES_FOUND=true # New release was added
+              fi
+            fi
+          done
+
+          # Check if any releases were updated or added
+          if [ "$RELEASES_FOUND" = true ]; then
+            # Commit and push the updated file to the repository
+            git config --global user.email "you@example.com"
+            git config --global user.name "Your Name"
+            git add all_releases.txt
+            git commit -m "Update release version in all_releases.txt"
+            git push
+
+            # Run the curl command to trigger another workflow
+            curl -X POST \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/MartinatorTime/auto-lspatch/actions/workflows/build-telegram.yml/dispatches \
+              -d '{"ref":"main"}'
+          else
+            echo "No changes to commit or trigger the workflow"
+          fi
