@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Delete Previous Releases
         run: |
-          release_id=$(curl -s https://api.github.com/repos/MartinatorTime/auto-lspatch/releases/latest | jq -r '.id')
+          release_id=$(curl -s https://api.github.com/repos/MartinatorTime/auto-lspatch/releases | jq -r '.[] | select(.tag_name=="LSpatched-dev") | .id')
           if [ -n "$release_id" ]; then
             echo "Deleting previous release $release_id..."
             curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/MartinatorTime/auto-lspatch/releases/$release_id"
