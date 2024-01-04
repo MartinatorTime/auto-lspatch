@@ -43,7 +43,7 @@ jobs:
         run: |
           modules=""
           modules="$modules -m ReTelegram*Release.apk" # Uncomment to enable module
-          # modules="$modules -m telespeed.apk"  # Uncomment to enable module
+          modules="$modules -m telespeed.apk"  # Uncomment to enable module
           # modules="$modules -m telegram_hidestories*.apk" # Uncomment to enable module
           # modules="$modules -m Killergram*.apk" # Uncomment to enable module
           modules="$modules -m ./Backup/tmoe*.apk"       # Uncomment to enable module
