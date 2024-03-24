@@ -1,0 +1,169 @@
+name: Download and Patch Modules DEV
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_call:
+  workflow_dispatch:
+
+
+jobs:
+  delete_previous_releases:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete Previous Releases
+        run: |
+          release_id=$(curl -s https://api.github.com/repos/MartinatorTime/auto-lspatch/releases | jq -r '.[] | select(.tag_name=="LSpatched-dev") | .id')
+          if [ -n "$release_id" ]; then
+            echo "Deleting previous release $release_id..."
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/MartinatorTime/auto-lspatch/releases/$release_id"
+          fi
+        shell: bash
+
+  build:
+    needs: delete_previous_releases
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+        with:
+          ref: dev
+        
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Create module list
+        id: create_module_list
+        run: |
+          modules=""
+          modules="$modules -m ReTelegram*Release.apk" # Uncomment to enable module
+          modules="$modules -m telespeed.apk"  # Uncomment to enable module
+          # modules="$modules -m telegram_hidestories*.apk" # Uncomment to enable module
+          # modules="$modules -m Killergram*.apk" # Uncomment to enable module
+          modules="$modules -m ./Backup/tmoe*.apk"       # Uncomment to enable module
+          # modules="$modules -m ./Backup/TelegramHelper.apk"     # Uncomment to enable module
+          modules="$modules -m TG.H.*.apk"     # Uncomment to enable module
+          echo "$modules" > module_list.txt 
+        shell: bash
+
+      - name: Download Re-Telegram Module
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/Xposed-Modules-Repo/nep.timeline.re_telegram/releases/latest | jq -r '.assets[] | select(.name | test("ReTelegram.*Release.apk")) | .name')
+          
+          # Download the file with the extracted filename
+          curl -L -o "$filename" $(curl -s https://api.github.com/repos/Xposed-Modules-Repo/nep.timeline.re_telegram/releases/latest | jq -r '.assets[] | select(.name | test("ReTelegram.*Release.apk")) | .browser_download_url')
+        shell: bash
+
+      - name: Download Killergram Module
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/shatyuka/Killergram/releases/latest | jq -r '.assets[] | select(.name | test("Killergram.*.apk")) | .name')
+          
+          # Download the file with the extracted filename
+          curl -L -o "$filename" $(curl -s https://api.github.com/repos/shatyuka/Killergram/releases/latest | jq -r '.assets[] | select(.name | test("Killergram.*.apk")) | .browser_download_url')
+        shell: bash
+
+      - name: Download TGramHooks Module
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/Xposed-Modules-Repo/com.simo.tgramhooks/releases/latest | jq -r '.assets[] | select(.name | test("TG.H.*.apk")) | .name')
+          
+          # Download the file with the extracted filename
+          curl -L -o "$filename" $(curl -s https://api.github.com/repos/Xposed-Modules-Repo/com.simo.tgramhooks/releases/latest | jq -r '.assets[] | select(.name | test("TG.H.*.apk")) | .browser_download_url')
+        shell: bash
+
+      - name: Download Telegram-Hidestories Module
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/Xposed-Modules-Repo/ru.mike.sidestories/releases/latest | jq -r '.assets[] | select(.name | test("telegram_hidestories.*.apk")) | .name')
+          
+          # Download the file with the extracted filename
+          curl -L -o "$filename" $(curl -s https://api.github.com/repos/Xposed-Modules-Repo/ru.mike.sidestories/releases/latest | jq -r '.assets[] | select(.name | test("telegram_hidestories.*.apk")) | .browser_download_url')
+        shell: bash
+
+      - name: Download and rename Telespeed Module
+        run: |
+          curl -L -o telespeed.apk $(curl -s https://api.github.com/repos/Xposed-Modules-Repo/io.github.tehcneko.telespeed/releases/latest | jq -r '.assets[0].browser_download_url')
+        shell: bash
+
+      - name: Download LSPatch Jar from Github
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/LSPosed/LSPatch/releases/latest | jq -r '.assets[] | select(.name | test(".*.jar")) | .name')
+
+          # Download the file with the extracted filename
+          curl -L -o "$filename" "$(curl -s https://api.github.com/repos/LSPosed/LSPatch/releases/latest | jq -r '.assets[] | select(.name | test(".*.jar")) | .browser_download_url')"
+        shell: bash
+
+      - name: Download and Patch Telegram Client
+        run: |
+          #Download APK
+          curl -L -o telegram.apk https://telegram.org/dl/android/apk
+
+          #Patch Telegram Client With Modules
+          java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Download And Patch ForkGram Client
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/forkgram/TelegramAndroid/releases/latest | jq -r '.assets[] | select(.name | test("ForkClient.*.apk")) | .name')
+
+          # Download the file with the extracted filename
+          curl -L -o "$filename" "$(curl -s https://api.github.com/repos/forkgram/TelegramAndroid/releases/latest | jq -r '.assets[] | select(.name | test("ForkClient.*.apk")) | .browser_download_url')"
+          
+          #Patch ForkGram Client With Modules
+          java -jar *.jar -l 2 $filename $(cat module_list.txt)
+        shell: bash
+
+      - name: Download And Patch TelegramFOSS Client
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/Telegram-FOSS-Team/Telegram-FOSS/releases/latest | jq -r '.assets[] | select(.name | test("TF.*.apk")) | .name')
+
+          # Download the file with the extracted filename
+          curl -L -o "$filename" "$(curl -s https://api.github.com/repos/Telegram-FOSS-Team/Telegram-FOSS/releases/latest | jq -r '.assets[] | select(.name | test("TF.*.apk")) | .browser_download_url')"
+          
+          #Patch TelegramFOSS Client With Modules
+          java -jar *.jar -l 2 $filename $(cat module_list.txt)
+        shell: bash
+        
+      - name: Download And Patch Nekogram Client
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/Nekogram/Nekogram/releases/latest | jq -r '.assets[] | select(.name | endswith("-arm64-v8a.apk")) | .name')
+
+          # Download the file with the extracted filename
+          curl -L -o "$filename" "$(curl -s https://api.github.com/repos/Nekogram/Nekogram/releases/latest | jq -r '.assets[] | select(.name | endswith("-arm64-v8a.apk")) | .browser_download_url')"
+          
+          #Patch TelegramFOSS Client With Modules
+          java -jar *.jar -l 2 $filename $(cat module_list.txt)
+        shell: bash
+        
+        
+      - name: Create Release
+        id: create_release
+        run: |
+          module_list_content=$(cat module_list.txt | sed 's/-m/\n/g')
+          echo "Included modules from module_list.txt:
+          $module_list_content" > release_body.txt
+        shell: bash
+      
+      - name: Upload Release
+        id: upload_release
+        uses: softprops/action-gh-release@master
+        with:
+          files: |
+            *-lspatched.apk
+          tag_name: LSpatched-dev
+          draft: false
+          body_path: release_body.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

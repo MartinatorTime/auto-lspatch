@@ -1,0 +1,9 @@
+LSPosed/LSPatch: v0.6
+Xposed-Modules-Repo/io.github.tehcneko.telespeed: 7-1.0.6
+shatyuka/Killergram: 22.03.12
+forkgram/TelegramAndroid: 10.9.1.0
+NextAlone/Nagram: 1160
+Telegram-FOSS-Team/Telegram-FOSS: v10.9.1
+Xposed-Modules-Repo/nep.timeline.re_telegram: 6.2
+Nekogram/Nekogram: v10.9.1
+Xposed-Modules-Repo/com.simo.tgramhooks: 1-1.3.2
