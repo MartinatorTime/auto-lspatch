@@ -1,0 +1,88 @@
+name: Test Download and Patch Modules
+
+on:
+  workflow_dispatch:
+
+jobs:
+  delete_previous_releases:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Delete Previous Releases
+        run: |
+          release_id=$(curl -s https://api.github.com/repos/MartinatorTime/auto-lspatch/releases/latest | jq -r '.id')
+          if [ -n "$release_id" ]; then
+            echo "Deleting previous release $release_id..."
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/MartinatorTime/auto-lspatch/releases/$release_id"
+          fi
+        shell: bash
+
+  build:
+    needs: delete_previous_releases
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        client: [
+          { name: 'telegram', url: 'https://telegram.org/dl/android/apk' },
+          { name: 'forkgram', url: 'https://api.github.com/repos/forkgram/TelegramAndroid/releases/latest' },
+          { name: 'telegramfoss', url: 'https://api.github.com/repos/Telegram-FOSS-Team/Telegram-FOSS/releases/latest' }
+        ] # Add more clients as needed
+        module: [
+          { name: 'ReTelegram*Release.apk', url: 'https://api.github.com/repos/Sakion-Team/Re-Telegram/releases/latest' },
+          { name: 'telespeed.apk', url: 'https://api.github.com/repos/Xposed-Modules-Repo/io.github.tehcneko.telespeed/releases/latest' }
+        ] # Add more modules as needed
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Download Telegram Client
+        run: |
+          # Download APK
+          curl -L -o telegram.apk https://telegram.org/dl/android/apk
+        shell: bash
+
+      - name: Extract version and rename APK
+        run: |
+          version=$(aapt dump badging telegram.apk | awk '/versionName/ {print $4}' | sed s/versionName=//g | sed s/\'//g)
+          mv telegram.apk telegram-v$version.apk
+        shell: bash
+
+      - name: Download LSPatch Jar from Github
+        run: |
+          # Get the filename from GitHub release
+          filename=$(curl -s https://api.github.com/repos/LSPosed/LSPatch/releases/latest | jq -r '.assets[] | select(.name | test(".*.jar")) | .name')
+
+          # Download the file with the extracted filename
+          curl -L -o "$filename" "$(curl -s https://api.github.com/repos/LSPosed/LSPatch/releases/latest | jq -r '.assets[] | select(.name | test(".*.jar")) | .browser_download_url')"
+        shell: bash
+
+      - name: Patch Telegram Client With Modules
+        run: |
+          # Patch Telegram Client With Modules
+          java -jar *.jar -r -l 2 telegram-v*.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Create Release
+        id: create_release
+        run: |
+          echo "Included module from matrix: ${{ matrix.module.name }}" > release_body.txt
+        shell: bash
+
+      - name: Upload Release
+        id: upload_release
+        uses: softprops/action-gh-release@master
+        with:
+          files: |
+            *-lspatched.apk
+          tag_name: LSpatched
+          draft: false
+          body_path: release_body.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
