@@ -1,7 +1,7 @@
 LSPosed/LSPatch: v0.6
 Xposed-Modules-Repo/io.github.tehcneko.telespeed: 7-1.0.6
 shatyuka/Killergram: 22.03.12
-forkgram/TelegramAndroid: 10.9.4.0
+forkgram/TelegramAndroid: 10.9.5.0
 NextAlone/Nagram: 1176
 Telegram-FOSS-Team/Telegram-FOSS: v10.12.0
 Xposed-Modules-Repo/nep.timeline.re_telegram: 90-Bocchi
