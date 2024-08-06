@@ -4,6 +4,6 @@ shatyuka/Killergram: 22.03.12
 forkgram/TelegramAndroid: 10.9.7.0
 NextAlone/Nagram: 1185
 Telegram-FOSS-Team/Telegram-FOSS: v10.14.3
-Xposed-Modules-Repo/nep.timeline.re_telegram: 126-Shiori
+Xposed-Modules-Repo/nep.timeline.re_telegram: 135-Shiori
 Nekogram/Nekogram: v10.13.1.1
 Xposed-Modules-Repo/com.simo.tgramhooks: 1-1.3.5
