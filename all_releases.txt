@@ -1,0 +1,8 @@
+
+JeelsBoobz/Killergram: v1.2.2
+Xposed-Modules-Repo/ru.mike.sidestories: 4-1.3
+Xposed-Modules-Repo/io.github.tehcneko.telespeed: 7-1.0.6
+LSPosed/LSPatch: v0.6
+forkgram/TelegramAndroid: 11.1.3.0
+Telegram-FOSS-Team/Telegram-FOSS: v10.14.3
+NextAlone/Nagram: 1193
