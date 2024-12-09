@@ -6,3 +6,4 @@ LSPosed/LSPatch: v0.6
 forkgram/TelegramAndroid: 11.5.3.0
 Telegram-FOSS-Team/Telegram-FOSS: v10.14.3
 NextAlone/Nagram: 1200
+Xposed-Modules-Repo/nep.timeline.re_telegram: 160-Shiori
