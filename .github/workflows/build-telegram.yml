@@ -1,0 +1,334 @@
+name: Download and Patch Modules
+
+on:
+  workflow_call:
+    inputs:
+      enable_retelegram_module:
+        description: 'Enable Re-Telegram module'
+        default: true
+        required: false
+        type: boolean
+      enable_telespeed_module:
+        description: 'Enable Telespeed module'
+        default: true
+        required: false
+        type: boolean
+      enable_telegram_sidestories_module:
+        description: 'Enable Telegram-SideStories module'
+        default: false
+        required: false
+        type: boolean
+      enable_killergram_module:
+        description: 'Enable Killergram module'
+        default: false
+        required: false
+        type: boolean
+      enable_tmoe_module:
+        description: 'Enable Tmoe module'
+        default: true
+        required: false
+        type: boolean
+      enable_telegram_helper_module:
+        description: 'Enable Telegram Helper module'
+        default: false
+        required: false
+        type: boolean
+      enable_forkgram_client:
+        description: 'Patch ForkGram client'
+        default: true
+        required: false
+        type: boolean
+      enable_telegramfoss_client:
+        description: 'Patch TelegramFOSS client'
+        default: true
+        required: false
+        type: boolean
+      enable_nagram_client:
+        description: 'Patch Nagram client'
+        default: true
+        required: false
+        type: boolean
+      enable_telegram_client:
+        description: 'Patch Telegram client'
+        default: true
+        required: false
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      enable_retelegram_module:
+        description: 'Enable Re-Telegram module'
+        default: true
+        required: false
+        type: boolean
+      enable_telespeed_module:
+        description: 'Enable Telespeed module'
+        default: true
+        required: false
+        type: boolean
+      enable_telegram_sidestories_module:
+        description: 'Enable Telegram-SideStories module'
+        default: false
+        required: false
+        type: boolean
+      enable_killergram_module:
+        description: 'Enable Killergram module'
+        default: false
+        required: false
+        type: boolean
+      enable_tmoe_module:
+        description: 'Enable Tmoe module'
+        default: true
+        required: false
+        type: boolean
+      enable_telegram_helper_module:
+        description: 'Enable Telegram Helper module'
+        default: false
+        required: false
+        type: boolean
+      enable_forkgram_client:
+        description: 'Patch ForkGram client'
+        default: true
+        required: false
+        type: boolean
+      enable_telegramfoss_client:
+        description: 'Patch TelegramFOSS client'
+        default: true
+        required: false
+        type: boolean
+      enable_nagram_client:
+        description: 'Patch Nagram client'
+        default: true
+        required: false
+        type: boolean
+      enable_telegram_client:
+        description: 'Patch Telegram client'
+        default: true
+        required: false
+        type: boolean
+
+jobs:
+  build-clients:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+        with:
+          ref: main
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '18'
+
+      - name: Create module list
+        id: create_module_list
+        run: |
+          modules=""
+          if [[ "${{ github.event.inputs.enable_retelegram_module }}" == "true" ]]; then
+            modules="$modules -m Re-Telegram-*-Release.apk"
+          fi
+          if [[ "${{ github.event.inputs.enable_telespeed_module }}" == "true" ]]; then
+            modules="$modules -m ./Backup/TeleSpeedMod.apk"
+            #modules="$modules -m Telespeed.apk"
+          fi
+          if [[ "${{ github.event.inputs.enable_telegram_sidestories_module }}" == "true" ]]; then
+            modules="$modules -m telegram_sidestories*.apk"
+          fi
+          if [[ "${{ github.event.inputs.enable_killergram_module }}" == "true" ]]; then
+            modules="$modules -m Killergram*.apk"
+          fi
+          if [[ "${{ github.event.inputs.enable_tmoe_module }}" == "true" ]]; then
+            modules="$modules -m tmoe.apk"
+          fi
+          if [[ "${{ github.event.inputs.enable_telegram_helper_module }}" == "true" ]]; then
+            modules="$modules -m ./Backup/TelegramHelper.apk"
+          fi
+          echo "$modules" > module_list.txt 
+        shell: bash
+
+      - name: Donwload Tmoe zip
+        if: ${{ github.event.inputs.enable_tmoe_module == 'true' }}
+        uses: aochmann/actions-download-artifact@1.0.4
+        with:
+          latest: true
+          path: .
+          repo: cinit/TMoe
+
+      - name: Unzip Tmoe Apk
+        if: ${{ github.event.inputs.enable_tmoe_module == 'true' }}
+        run: |
+          find . -type f -name "app-release.apk" -exec cp {} tmoe.apk \;
+        shell: bash
+
+      - name: Download Re-Telegram Module
+        if: ${{ github.event.inputs.enable_retelegram_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "Re-Telegram-*-Release.apk"
+          repository: Xposed-Modules-Repo/nep.timeline.re_telegram
+          latest: true
+
+
+      - name: Download Killergram Module
+        if: ${{ github.event.inputs.enable_killergram_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "Killergram_*.apk"
+          repository: JeelsBoobz/Killergram
+          latest: true
+        
+
+      - name: Download Telegram-SideStories Module
+        if: ${{ github.event.inputs.enable_telegram_sidestories_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "telegram_sidestories*.apk"
+          repository: Xposed-Modules-Repo/ru.mike.sidestories
+          latest: true
+
+      - name: Download and rename Telespeed Module
+        if: ${{ github.event.inputs.enable_telespeed_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "app-release.apk"
+          repository: Xposed-Modules-Repo/io.github.tehcneko.telespeed
+          latest: true
+
+      - name: Rename Telespeed Module
+        if: ${{ github.event.inputs.enable_telespeed_module == 'true' }}      
+        run: mv app-release.apk Telespeed.apk
+        shell: bash
+
+      - name: Download LSPatch Jar from Github
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "*.jar"
+          repository: LSPosed/LSPatch
+          latest: true
+
+      - name: Download and Patch Telegram Client
+        if: ${{ github.event.inputs.enable_telegram_client == 'true' }}
+        run: |
+          #Download APK
+          curl -L -o telegram.apk https://telegram.org/dl/android/apk
+
+          #Patch Telegram Client With Modules
+          java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Download ForkGram Client
+        if: ${{ github.event.inputs.enable_forkgram_client == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "ForkClient*.apk"
+          repository: forkgram/TelegramAndroid
+          latest: true
+
+      
+      - name: Patch ForkGram Client With Modules
+        if: ${{ github.event.inputs.enable_forkgram_client == 'true' }}
+        run: |
+          java -jar *.jar -l 2 ForkClient*.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Download And Patch TelegramFOSS Client
+        if: ${{ github.event.inputs.enable_telegramfoss_client == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "TF*.apk"
+          repository: Telegram-FOSS-Team/Telegram-FOSS
+          latest: true
+
+      - name: Patch TelegramFOSS Client With Modules
+        if: ${{ github.event.inputs.enable_telegramfoss_client == 'true' }}
+        run: |
+          java -jar *.jar -l 2 TF*.apk $(cat module_list.txt)
+        shell: bash
+        
+      - name: Download And Patch Nagram Client
+        if: ${{ github.event.inputs.enable_nagram_client == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "Nagram*-arm64-v8a.apk"
+          repository: NextAlone/Nagram
+          latest: true
+
+      - name: Patch Nagram Client With Modules
+        if: ${{ github.event.inputs.enable_nagram_client == 'true' }}
+        run: |
+          java -jar *.jar -l 2 Nagram*-arm64-v8a.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Delete Previous Releases
+        run: |
+          release_id=$(curl -s https://api.github.com/repos/MartinatorTime/auto-lspatch/releases | jq -r '.[] | select(.tag_name=="LSpatched") | .id')
+          if [ -n "$release_id" ]; then
+            echo "Deleting previous release $release_id..."
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "https://api.github.com/repos/MartinatorTime/auto-lspatch/releases/$release_id"
+          fi
+        shell: bash
+
+      - name: Create Release
+        id: create_release
+        run: |
+          echo "Used modules:" > release_body.txt
+
+          if [ "${{ github.event.inputs.enable_retelegram_module }}" == "true" ]; then
+              echo "- Re-Telegram" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_telespeed_module }}" == "true" ]; then
+              echo "- Telespeed" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_telegram_sidestories_module }}" == "true" ]; then
+              echo "- Telegram-SideStories" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_killergram_module }}" == "true" ]; then
+              echo "- Killergram" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_tmoe_module }}" == "true" ]; then
+              echo "- Tmoe" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_telegram_helper_module }}" == "true" ]; then
+              echo "- Telegram Helper" >> release_body.txt
+          fi
+
+          echo "" >> release_body.txt
+
+          echo "Clients:" >> release_body.txt
+
+          if [ "${{ github.event.inputs.enable_telegram_client }}" == "true" ]; then
+              echo "- Telegram" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_nagram_client }}" == "true" ]; then
+              echo "- Nagram" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_telegramfoss_client }}" == "true" ]; then
+              echo "- TelegramFOSS" >> release_body.txt
+          fi
+
+          if [ "${{ github.event.inputs.enable_forkgram_client }}" == "true" ]; then
+              echo "- ForkGram" >> release_body.txt
+          fi
+
+          echo "" >> release_body.txt
+      
+      - name: Upload Release
+        id: upload_release
+        uses: softprops/action-gh-release@master
+        with:
+          files: |
+            *-lspatched.apk
+          tag_name: LSpatched
+          draft: false
+          body_path: release_body.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
