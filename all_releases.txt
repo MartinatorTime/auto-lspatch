@@ -1,6 +1,6 @@
 
 JeelsBoobz/Killergram: v1.2.2
-Xposed-Modules-Repo/ru.mike.sidestories: 4-1.3
+Xposed-Modules-Repo/ru.mike.sidestories: v1.0
 Xposed-Modules-Repo/io.github.tehcneko.telespeed: 7-1.0.6
 LSPosed/LSPatch: v0.6
 forkgram/TelegramAndroid: 11.9.0.2
