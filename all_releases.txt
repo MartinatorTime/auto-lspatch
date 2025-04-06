@@ -1,0 +1,9 @@
+
+JeelsBoobz/Killergram: v1.2.2
+Xposed-Modules-Repo/ru.mike.sidestories: v1.0
+Xposed-Modules-Repo/io.github.tehcneko.telespeed: 7-1.0.6
+LSPosed/LSPatch: v0.6
+forkgram/TelegramAndroid: 11.9.0.2
+Telegram-FOSS-Team/Telegram-FOSS: v10.14.3
+NextAlone/Nagram: 1206
+Xposed-Modules-Repo/nep.timeline.re_telegram: 160-Shiori
