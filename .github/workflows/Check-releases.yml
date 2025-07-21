@@ -1,0 +1,153 @@
+name: Check for New Client Releases
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # Run daily, adjust as needed
+
+jobs:
+  check-client-releases:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@master
+        with:
+          ref: main
+
+      - name: Create File if Not Exist
+        run: |
+          if [ ! -f "all_releases.txt" ]; then
+            touch all_releases.txt
+            echo "File created"
+          fi
+
+      - name: Download AAPT Tool
+        run: |
+          curl -sSL https://dl.google.com/android/repository/build-tools_r33.0.2-linux.zip -o build-tools.zip
+          unzip -q build-tools.zip -d build-tools
+          echo "AAPT=build-tools/android-13/aapt" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Download Telegram Client
+        run: curl -L -o telegram.apk https://telegram.org/dl/android/apk
+        shell: bash
+
+      - name: Download ForkGram Client
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "ForkClient*.apk"
+          repository: forkgram/TelegramAndroid
+          latest: true
+
+      - name: Download TelegramFOSS Client
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "TF*.apk"
+          repository: Telegram-FOSS-Team/Telegram-FOSS
+          latest: true
+
+      - name: Check for New Client Releases
+        id: check-client-releases
+        run: |
+          chmod +x "$AAPT"
+          RELEASES_FOUND=false # Assume no releases found initially
+
+          # Check for New Client Releases
+          echo "--- Checking Client Releases ---"
+          # Telegram Client
+          TG_INFO=$("$AAPT" dump badging telegram*.apk | grep versionName)
+          TG_VersionName=$(echo "$TG_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          TG_VersionCode=$(echo "$TG_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          CURRENT_TG_VERSION="$TG_VersionName $TG_VersionCode"
+          echo "Current Telegram Version: $CURRENT_TG_VERSION"
+          if grep -q "^Telegram: " all_releases.txt; then
+            EXISTING_TG_VERSION=$(grep "^Telegram: " all_releases.txt | cut -d ' ' -f 2-)
+            if [ "$EXISTING_TG_VERSION" != "$CURRENT_TG_VERSION" ]; then
+              sed -i "s|^Telegram: .*|Telegram: $CURRENT_TG_VERSION|" all_releases.txt
+              RELEASES_FOUND=true
+            fi
+          else
+            echo "Telegram: $CURRENT_TG_VERSION" >> all_releases.txt
+            RELEASES_FOUND=true
+          fi
+
+          # ForkGram Client
+          FORK_INFO=$("$AAPT" dump badging ForkClient*.apk | grep versionName)
+          FORK_VersionName=$(echo "$FORK_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          FORK_VersionCode=$(echo "$FORK_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          CURRENT_FORK_VERSION="$FORK_VersionName $FORK_VersionCode"
+          echo "Current ForkGram Version: $CURRENT_FORK_VERSION"
+          if grep -q "^ForkGram: " all_releases.txt; then
+            EXISTING_FORK_VERSION=$(grep "^ForkGram: " all_releases.txt | cut -d ' ' -f 2-)
+            if [ "$EXISTING_FORK_VERSION" != "$CURRENT_FORK_VERSION" ]; then
+              sed -i "s|^ForkGram: .*|ForkGram: $CURRENT_FORK_VERSION|" all_releases.txt
+              RELEASES_FOUND=true
+            fi
+          else
+            echo "ForkGram: $CURRENT_FORK_VERSION" >> all_releases.txt
+            RELEASES_FOUND=true
+          fi
+
+          # TelegramFOSS Client
+          TGFOSS_INFO=$("$AAPT" dump badging TF*.apk | grep versionName)
+          TGFOSS_VersionName=$(echo "$TGFOSS_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          TGFOSS_VersionCode=$(echo "$TGFOSS_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          CURRENT_TGFOSS_VERSION="$TGFOSS_VersionName $TGFOSS_VersionCode"
+          echo "Current TelegramFOSS Version: $CURRENT_TGFOSS_VERSION"
+          if grep -q "^TelegramFOSS: " all_releases.txt; then
+            EXISTING_TGFOSS_VERSION=$(grep "^TelegramFOSS: " all_releases.txt | cut -d ' ' -f 2-)
+            if [ "$EXISTING_TGFOSS_VERSION" != "$CURRENT_TGFOSS_VERSION" ]; then
+              sed -i "s|^TelegramFOSS: .*|TelegramFOSS: $CURRENT_TGFOSS_VERSION|" all_releases.txt
+              RELEASES_FOUND=true
+            fi
+          else
+            echo "TelegramFOSS: $CURRENT_TGFOSS_VERSION" >> all_releases.txt
+            RELEASES_FOUND=true
+          fi
+
+          # Check for New Module Releases
+          echo "--- Checking Module Releases ---"
+          MODULE_REPOS="Xposed-Modules-Repo/com.my.televip araafroyall/Telegram-Speed-Hook JeelsBoobz/Killergram Xposed-Modules-Repo/com.alex193a.tguseridviewer JingMatrix/LSPatch"
+
+          for REPO in $MODULE_REPOS; do
+            LATEST_RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" -H "Accept: application/vnd.github.v3+json")
+            if [[ $LATEST_RELEASE == *"message"* ]]; then
+              echo "Error checking releases for $REPO"
+              continue
+            fi
+            TAG_NAME=$(echo "$LATEST_RELEASE" | jq -r '.tag_name')
+            REPO_NAME=$(echo "$REPO" | cut -d '/' -f 2) # Extract repo name for file storage
+            if [ -z "$TAG_NAME" ]; then
+              echo "No releases found for $REPO"
+            else
+              echo "Current $REPO_NAME Tag: $TAG_NAME"
+              if grep -q "^$REPO_NAME: " all_releases.txt; then
+                EXISTING_TAG=$(grep "^$REPO_NAME: " all_releases.txt | cut -d ' ' -f 2)
+                if [ "$EXISTING_TAG" != "$TAG_NAME" ]; then
+                  sed -i "s|^$REPO_NAME: .*|$REPO_NAME: $TAG_NAME|" all_releases.txt
+                  RELEASES_FOUND=true
+                fi
+              else
+                echo "$REPO_NAME: $TAG_NAME" >> all_releases.txt
+                RELEASES_FOUND=true
+              fi
+            fi
+          done
+
+          if [ "$RELEASES_FOUND" = true ]; then
+            git config --global user.email "action@github.com"
+            git config --global user.name "GitHub Action"
+            git add all_releases.txt
+            git commit -m "Update client and module versions in all_releases.txt"
+            git push
+
+            curl -X POST \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/MartinatorTime/auto-lspatch/actions/workflows/build-telegram.yml/dispatches \
+              -d '{"ref":"main"}'
+          else
+            echo "No changes to commit or trigger the workflow"
+          fi
+        shell: bash

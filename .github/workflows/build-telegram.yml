@@ -1,0 +1,242 @@
+name: Download and Patch Modules
+
+on:
+  workflow_call:
+    inputs:
+      enable_televip_module:
+        description: 'Enable TeleVip module'
+        default: true
+        required: true
+        type: boolean
+      enable_speedhook_module:
+        description: 'Enable SpeedHook module'
+        default: true
+        required: true
+        type: boolean
+      enable_killergram_module:
+        description: 'Enable Killergram module'
+        default: true
+        required: true
+        type: boolean
+      enable_userid_module:
+        description: 'Enable UserID Viewer module'
+        default: true
+        required: true
+        type: boolean
+  workflow_dispatch:
+    inputs:
+      enable_televip_module:
+        description: 'Enable TeleVip module'
+        default: true
+        required: true
+        type: boolean
+      enable_speedhook_module:
+        description: 'Enable SpeedHook module'
+        default: true
+        required: true
+        type: boolean
+      enable_killergram_module:
+        description: 'Enable Killergram module'
+        default: true
+        required: true
+        type: boolean
+      enable_userid_module:
+        description: 'Enable UserID Viewer module'
+        default: true
+        required: true
+        type: boolean
+
+jobs:
+  Clean:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Delete all releases
+        run: |
+          gh release list --limit 1000 | awk '{print $1}' | while read tag; do
+            echo "Deleting release: $tag"
+            gh release delete "$tag" -y || true
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete all tags
+        run: |
+          git fetch --tags
+          git ls-remote --tags origin | awk '{print $2}' | sed 's|refs/tags/||' | while read tag; do
+            echo "Deleting tag: $tag"
+            git push origin --delete "$tag" || true
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 0
+
+  build-clients:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+        with:
+          ref: main
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '21'
+
+      - name: Create module list
+        id: create_module_list
+        run: |
+          echo "Used modules:" > release_body.txt
+          modules=""
+          if [[ "${{ github.event.inputs.enable_televip_module }}" == "true" ]]; then
+            modules="$modules -m TeleVip.apk"
+            echo "- TeleVip" >> release_body.txt
+          fi
+          if [[ "${{ github.event.inputs.enable_speedhook_module }}" == "true" ]]; then
+            modules="$modules -m Telegram.Speed.Hook-*.apk"
+            echo "- SpeedHook" >> release_body.txt
+          fi
+          if [[ "${{ github.event.inputs.enable_killergram_module }}" == "true" ]]; then
+            modules="$modules -m Killergram*.apk"
+            echo "- Killergram" >> release_body.txt
+          fi
+          if [[ "${{ github.event.inputs.enable_userid_module }}" == "true" ]]; then
+            modules="$modules -m com.alex193a.tguseridviewer_v*_*.apk"
+            echo "- UserID Viewer" >> release_body.txt
+          fi
+          echo "$modules" > module_list.txt 
+          echo "" >> release_body.txt
+        shell: bash
+
+      - name: Download TeleVip Module
+        if: ${{ github.event.inputs.enable_televip_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "app-release.apk"
+          repository: Xposed-Modules-Repo/com.my.televip
+          latest: true
+
+      - name: Rename Televip Module
+        if: ${{ github.event.inputs.enable_televip_module == 'true' }}      
+        run: mv app-release.apk TeleVip.apk
+        shell: bash  
+
+      - name: Download SpeedHook Module
+        if: ${{ github.event.inputs.enable_speedhook_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "Telegram.Speed.Hook-*.apk"
+          repository: araafroyall/Telegram-Speed-Hook
+          latest: true
+
+      - name: Download Killergram Module
+        if: ${{ github.event.inputs.enable_killergram_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "Killergram*.apk"
+          repository: JeelsBoobz/Killergram
+          latest: true
+      
+      - name: Download UserID Viewer Module
+        if: ${{ github.event.inputs.enable_userid_module == 'true' }}  
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "com.alex193a.tguseridviewer_v*_*.apk"
+          repository: Xposed-Modules-Repo/com.alex193a.tguseridviewer
+          latest: true
+
+      - name: Download LSPatch Jar from Github
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "*.jar"
+          repository: JingMatrix/LSPatch
+          latest: true
+
+      - name: Download and Patch Telegram Client
+        run: |
+          #Download APK
+          curl -L -o telegram.apk https://telegram.org/dl/android/apk
+
+          #Patch Telegram Client With Modules
+          java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Download ForkGram Client
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "ForkClient*.apk"
+          repository: forkgram/TelegramAndroid
+          latest: true
+
+      
+      - name: Patch ForkGram Client With Modules
+        run: |
+          java -jar *.jar -l 2 ForkClient*.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Download And Patch TelegramFOSS Client
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "TF*.apk"
+          repository: Telegram-FOSS-Team/Telegram-FOSS
+          latest: true
+
+      - name: Patch TelegramFOSS Client With Modules
+        run: |
+          java -jar *.jar -l 2 TF*.apk $(cat module_list.txt)
+        shell: bash
+
+      - name: Create Release Info
+        run: |
+          curl -sSL https://dl.google.com/android/repository/build-tools_r33.0.2-linux.zip -o build-tools.zip
+          unzip -q build-tools.zip -d build-tools
+          AAPT=build-tools/android-13/aapt
+
+          chmod +x "$AAPT"
+
+          TG_INFO=$("$AAPT" dump badging telegram*.apk | grep versionName)
+          TG_VersionName=$(echo "$TG_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          TG_VersionCode=$(echo "$TG_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          TG_Version="$TG_VersionName $TG_VersionCode"
+
+          FORK_INFO=$("$AAPT" dump badging ForkClient*.apk | grep versionName)
+          FORK_VersionName=$(echo "$FORK_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          FORK_VersionCode=$(echo "$FORK_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          FORK_Version="$FORK_VersionName $FORK_VersionCode"
+
+          TGFOSS_INFO=$("$AAPT" dump badging TF*.apk | grep versionName)
+          TGFOSS_VersionName=$(echo "$TGFOSS_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+          TGFOSS_VersionCode=$(echo "$TGFOSS_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+          TGFOSS_Version="$TGFOSS_VersionName $TGFOSS_VersionCode"
+
+          echo "Clients:" >> release_body.txt
+          echo "- Telegram - $TG_Version" >> release_body.txt
+          echo "- ForkGram - $FORK_Version" >> release_body.txt
+          echo "- TelegramFOSS - $TGFOSS_Version" >> release_body.txt
+          echo "" >> release_body.txt
+          echo "Patched at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> release_body.txt
+        shell: bash
+
+      - name: Upload Release
+        id: upload_release
+        uses: softprops/action-gh-release@master
+        with:
+          files: |
+            *-lspatched.apk
+          tag_name: LSpatched
+          draft: false
+          body_path: release_body.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

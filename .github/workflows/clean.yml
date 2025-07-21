@@ -1,0 +1,40 @@
+name: Delete old workflow runs and clear commits
+on:
+  workflow_dispatch:
+
+jobs:
+  del_runs:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@v2
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 0
+          keep_minimum_runs: 0
+          
+  clear-repo:
+    runs-on: ubuntu-latest
+    needs: [del_runs]
+    steps:
+      - name: Checkout Main Branch
+        uses: actions/checkout@master
+        with:
+          ref: main
+      - name: Set Git User
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "Your Name"
+      - name: Clear Repo
+        run: |
+          git checkout --orphan new-main
+          git add -A
+          git commit -am "Initial commit"
+          git branch -D main
+          git branch -m main
+          git push -f origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
