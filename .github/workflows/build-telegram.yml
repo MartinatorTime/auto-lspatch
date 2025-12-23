@@ -176,7 +176,7 @@ jobs:
         uses: robinraju/release-downloader@v1
         with:
           fileName: "app-release.apk"
-          repository: Re-Telegram-CherryFork
+          repository: hxreborn/Re-Telegram-CherryFork
           latest: true
 
       - name: Rename ReTelegram Module
