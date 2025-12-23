@@ -25,6 +25,7 @@ We would like to thank the following:
   - [TeleVip](https://github.com/Xposed-Modules-Repo/com.my.televip)
   - [SpeedHook](https://github.com/araafroyall/Telegram-Speed-Hook)
   - [Killergram](https://github.com/JeelsBoobz/Killergram)
+  - [Re-Telegram-Fork](https://github.com/hxreborn/Re-Telegram-CherryFork)
 - The Telegram clients:
   - [Telegram](https://telegram.org/android)
   - [Forkgram](https://github.com/forkgram/TelegramAndroid)

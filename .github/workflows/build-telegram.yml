@@ -23,11 +23,16 @@ on:
         default: true
         required: true
         type: boolean
+      enable_re_telegram_module:
+        description: 'Enable ReTelegram module'
+        default: true
+        required: true
+        type: boolean
   workflow_dispatch:
     inputs:
       enable_televip_module:
         description: 'Enable TeleVip module'
-        default: true
+        default: false
         required: true
         type: boolean
       enable_speedhook_module:
@@ -37,11 +42,16 @@ on:
         type: boolean
       enable_killergram_module:
         description: 'Enable Killergram module'
-        default: true
+        default: false
         required: true
         type: boolean
       enable_userid_module:
         description: 'Enable UserID Viewer module'
+        default: true
+        required: true
+        type: boolean
+      enable_re_telegram_module:
+        description: 'Enable ReTelegram module'
         default: true
         required: true
         type: boolean
@@ -116,6 +126,10 @@ jobs:
             modules="$modules -m com.alex193a.tguseridviewer_v*_*.apk"
             echo "- UserID Viewer" >> release_body.txt
           fi
+          if [[ "${{ github.event.inputs.enable_re_telegram_module }}" == "true" ]]; then
+            modules="$modules -m ReTelegram.apk"
+            echo "- ReTelegram" >> release_body.txt
+          fi
           echo "$modules" > module_list.txt 
           echo "" >> release_body.txt
         shell: bash
@@ -156,6 +170,19 @@ jobs:
           fileName: "com.alex193a.tguseridviewer_v*_*.apk"
           repository: Xposed-Modules-Repo/com.alex193a.tguseridviewer
           latest: true
+
+      - name: Download ReTelegram Module
+        if: ${{ github.event.inputs.enable_re_telegram_module == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "app-release.apk"
+          repository: hxreborn/Re-Telegram-CherryFork
+          latest: true
+
+      - name: Rename ReTelegram Module
+        if: ${{ github.event.inputs.enable_re_telegram_module == 'true' }}      
+        run: mv app-release.apk ReTelegram.apk
+        shell: bash  
 
       - name: Download LSPatch Jar from Github
         uses: robinraju/release-downloader@v1
