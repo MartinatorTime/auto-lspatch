@@ -1,4 +1,4 @@
-Telegram: 12.3.0 63779
+Telegram: 12.4.1 65109
 ForkGram: 12.3.2.0 638609
 TelegramFOSS: 10.14.3 49279
 Telegram-Speed-Hook: TgSpeedHook-v2.1
