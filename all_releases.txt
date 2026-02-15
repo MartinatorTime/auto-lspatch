@@ -5,4 +5,4 @@ Telegram-Speed-Hook: TgSpeedHook-v2.1
 Killergram: v1.2.2
 com.alex193a.tguseridviewer: 3-1.2
 LSPatch: v0.7
-com.my.televip: 105-2.5
+com.my.televip: 175-2.6
