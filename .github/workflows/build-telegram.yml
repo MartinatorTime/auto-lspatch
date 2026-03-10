@@ -187,7 +187,7 @@ jobs:
       - name: Download LSPatch Jar from Github
         uses: robinraju/release-downloader@v1
         with:
-          fileName: "*.jar"
+          fileName: "lspatch.jar"
           repository: JingMatrix/LSPatch
           latest: true
 
