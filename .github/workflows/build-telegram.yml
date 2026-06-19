@@ -15,7 +15,7 @@ on:
         type: boolean
       enable_killergram_module:
         description: 'Enable Killergram module'
-        default: true
+        default: false
         required: true
         type: boolean
       enable_userid_module:
@@ -25,14 +25,14 @@ on:
         type: boolean
       enable_re_telegram_module:
         description: 'Enable ReTelegram module'
-        default: true
+        default: false
         required: true
         type: boolean
   workflow_dispatch:
     inputs:
       enable_televip_module:
         description: 'Enable TeleVip module'
-        default: false
+        default: true
         required: true
         type: boolean
       enable_speedhook_module:
@@ -52,7 +52,7 @@ on:
         type: boolean
       enable_re_telegram_module:
         description: 'Enable ReTelegram module'
-        default: true
+        default: false
         required: true
         type: boolean
 
@@ -136,7 +136,7 @@ jobs:
 
       - name: Download TeleVip Module
         if: ${{ github.event.inputs.enable_televip_module == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "app-release.apk"
           repository: Xposed-Modules-Repo/com.my.televip
@@ -149,7 +149,7 @@ jobs:
 
       - name: Download SpeedHook Module
         if: ${{ github.event.inputs.enable_speedhook_module == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "Telegram.Speed.Hook-*.apk"
           repository: araafroyall/Telegram-Speed-Hook
@@ -157,7 +157,7 @@ jobs:
 
       - name: Download Killergram Module
         if: ${{ github.event.inputs.enable_killergram_module == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "Killergram*.apk"
           repository: JeelsBoobz/Killergram
@@ -165,7 +165,7 @@ jobs:
       
       - name: Download UserID Viewer Module
         if: ${{ github.event.inputs.enable_userid_module == 'true' }}  
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "com.alex193a.tguseridviewer_v*_*.apk"
           repository: Xposed-Modules-Repo/com.alex193a.tguseridviewer
@@ -173,7 +173,7 @@ jobs:
 
       - name: Download ReTelegram Module
         if: ${{ github.event.inputs.enable_re_telegram_module == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "app-release.apk"
           repository: hxreborn/Re-Telegram-CherryFork
@@ -185,11 +185,15 @@ jobs:
         shell: bash  
 
       - name: Download LSPatch Jar from Github
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "lspatch.jar"
           repository: JingMatrix/LSPatch
           latest: true
+
+      - name: Rename LsPatch Jar   
+        run: mv lspatch.jar patcher.jar
+        shell: bash  
 
       - name: Download and Patch Telegram Client
         run: |
@@ -197,24 +201,27 @@ jobs:
           curl -L -o telegram.apk https://telegram.org/dl/android/apk
 
           #Patch Telegram Client With Modules
-          java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 1 telegram.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download ForkGram Client
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "ForkClient*.apk"
           repository: forkgram/TelegramAndroid
           latest: true
 
+      - name: Remove Old ForkGram APK
+        run: rm -f *compressed.apk
+        shell: bash
       
       - name: Patch ForkGram Client With Modules
         run: |
-          java -jar *.jar -l 2 ForkClient*.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 1 ForkClient*.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download And Patch TelegramFOSS Client
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "TF*.apk"
           repository: Telegram-FOSS-Team/Telegram-FOSS
@@ -222,14 +229,18 @@ jobs:
 
       - name: Patch TelegramFOSS Client With Modules
         run: |
-          java -jar *.jar -l 2 TF*.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 1 TF*.apk $(cat module_list.txt)
         shell: bash
+
+      - name: Setup Android Build Tools
+        run: |
+          mkdir -p $HOME/android-tools
+          curl -sSL https://dl.google.com/android/repository/build-tools_r33.0.2-linux.zip -o build-tools.zip
+          unzip -q build-tools.zip -d $HOME/android-tools
 
       - name: Create Release Info
         run: |
-          curl -sSL https://dl.google.com/android/repository/build-tools_r33.0.2-linux.zip -o build-tools.zip
-          unzip -q build-tools.zip -d build-tools
-          AAPT=build-tools/android-13/aapt
+          AAPT=$HOME/android-tools/android-13/aapt
 
           chmod +x "$AAPT"
 
@@ -262,7 +273,7 @@ jobs:
         with:
           files: |
             *-lspatched.apk
-          tag_name: LSpatched
+          tag_name: Patched
           draft: false
           body_path: release_body.txt
         env:
