@@ -28,16 +28,6 @@ on:
         default: true
         required: true
         type: boolean
-      use_lspatch:
-        description: 'Use LSPatch'
-        default: false
-        required: true
-        type: boolean
-      use_npatch:
-        description: 'Use NPatch'
-        default: true
-        required: true
-        type: boolean
   workflow_dispatch:
     inputs:
       enable_televip_module:
@@ -62,16 +52,6 @@ on:
         type: boolean
       enable_re_telegram_module:
         description: 'Enable ReTelegram module'
-        default: true
-        required: true
-        type: boolean
-      use_lspatch:
-        description: 'Use LSPatch'
-        default: false
-        required: true
-        type: boolean
-      use_npatch:
-        description: 'Use NPatch'
         default: true
         required: true
         type: boolean
@@ -205,49 +185,24 @@ jobs:
         shell: bash  
 
       - name: Download LSPatch Jar from Github
-        if: ${{ github.event.inputs.use_lspatch == 'true' }}
         uses: robinraju/release-downloader@v1.13
         with:
           fileName: "lspatch.jar"
           repository: JingMatrix/LSPatch
           latest: true
 
-      - name: Rename LsPatch Jar
-        if: ${{ github.event.inputs.use_lspatch == 'true' }}      
+      - name: Rename LsPatch Jar   
         run: mv lspatch.jar patcher.jar
         shell: bash  
 
-      - name: Download NPatch Jar from Github
-        if: ${{ github.event.inputs.use_npatch == 'true' }}
-        uses: robinraju/release-downloader@v1.13
-        with:
-          fileName: "jar-*-release.jar"
-          repository: 7723mod/NPatch
-          latest: true    
-
-      - name: Rename NPatch Jar
-        if: ${{ github.event.inputs.use_npatch == 'true' }}      
-        run: mv jar-*-release.jar patcher.jar
-        shell: bash  
-
-      - name: Setup Patcher Environment
+      - name: Download and Patch Telegram Client
         run: |
-          # Download Bouncy Castle
-          curl -L -o bcprov.jar https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.70/bcprov-jdk15on-1.70.jar
-          # Create a basic security config to register Bouncy Castle
-          echo "security.provider.1=org.bouncycastle.jce.provider.BouncyCastleProvider" > java.security
-
-      - name: Patch Telegram
-        run: |
-          # Use -Djava.security.properties to fix the BKS error
+          #Download APK
           curl -L -o telegram.apk https://telegram.org/dl/android/apk
-          java -Djava.security.properties=java.security -cp "patcher.jar:bcprov.jar" top.nkbe.npatch.patch.NPatch -l 2 telegram.apk $(cat module_list.txt)
-          
-          # Verify success before proceeding
-          if [ ! -f "telegram-639-npatched.apk" ]; then
-            echo "Patching failed!"
-            exit 1
-          fi
+
+          #Patch Telegram Client With Modules
+          java -jar patcher.jar -l 2 telegram.apk $(cat module_list.txt)
+        shell: bash
 
       - name: Download ForkGram Client
         uses: robinraju/release-downloader@v1.13
