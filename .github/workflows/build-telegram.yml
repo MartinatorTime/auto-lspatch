@@ -216,7 +216,7 @@ jobs:
         if: ${{ github.event.inputs.use_npatch == 'true' }}
         uses: robinraju/release-downloader@v1
         with:
-          fileName: "jar.*-release.jar"
+          fileName: "jar-*-release.jar"
           repository: 7723mod/NPatch
           latest: true    
 
