@@ -252,7 +252,7 @@ jobs:
                 
                 # 3. Sign ONLY this file
                 #java -jar uber-apk-signer-1.3.0.jar -a "$patched_apk" --allowResign
-                java -jar uber-apk-signer-1.3.0.jar -a "$patched_apk" --allowResign --v3 false --skipZipAlign
+                java -jar uber-apk-signer-1.3.0.jar -a "$patched_apk" --allowResign --skipZipAlign
                 
                 # 4. Rename the output
                 # When signing 'Telegram-439-lspatched.apk', uber-apk-signer creates:
