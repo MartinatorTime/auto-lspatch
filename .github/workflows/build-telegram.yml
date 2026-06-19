@@ -305,7 +305,9 @@ jobs:
         uses: softprops/action-gh-release@master
         with:
           files: |
-            *.apk
+            Telegram-*.apk
+            ForkGram-*.apk
+            TelegramFOSS-*.apk
           tag_name: Patched
           draft: false
           body_path: release_body.txt
