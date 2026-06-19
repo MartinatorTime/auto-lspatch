@@ -230,17 +230,23 @@ jobs:
         run: mv jar-*-release.jar patcher.jar
         shell: bash  
 
-      - name: Download and Patch Telegram Client
+      - name: Setup Patcher Environment
         run: |
-          #Download APK
-          curl -L -o telegram.apk https://telegram.org/dl/android/apk
-
-          # Download Bouncy Castle provider
+          # Download Bouncy Castle
           curl -L -o bcprov.jar https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.70/bcprov-jdk15on-1.70.jar
+          # Create a basic security config to register Bouncy Castle
+          echo "security.provider.1=org.bouncycastle.jce.provider.BouncyCastleProvider" > java.security
 
-          # Run NPatch with the provider
-          java -cp "patcher.jar:bcprov.jar" top.nkbe.npatch.patch.NPatch -l 2 telegram.apk $(cat module_list.txt)
-        shell: bash
+      - name: Patch Telegram
+        run: |
+          # Use -Djava.security.properties to fix the BKS error
+          java -Djava.security.properties=java.security -cp "patcher.jar:bcprov.jar" top.nkbe.npatch.patch.NPatch -l 2 telegram.apk $(cat module_list.txt)
+          
+          # Verify success before proceeding
+          if [ ! -f "telegram-639-npatched.apk" ]; then
+            echo "Patching failed!"
+            exit 1
+          fi
 
       - name: Download ForkGram Client
         uses: robinraju/release-downloader@v1.13
