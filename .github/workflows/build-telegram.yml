@@ -248,7 +248,7 @@ jobs:
             java -jar patcher.jar -f -d -l 1 "$input_apk" $(cat module_list.txt)
             
             # 2. Sign
-            java -jar uber-apk-signer-1.3.0.jar -a . --allowResign
+            java -jar uber-apk-signer-1.3.0.jar -a *-lspatched.apk --allowResign
             
             # 3. Rename
             local base_name="${input_apk%.*}"
