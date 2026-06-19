@@ -15,7 +15,7 @@ on:
         type: boolean
       enable_killergram_module:
         description: 'Enable Killergram module'
-        default: true
+        default: false
         required: true
         type: boolean
       enable_userid_module:
@@ -25,14 +25,14 @@ on:
         type: boolean
       enable_re_telegram_module:
         description: 'Enable ReTelegram module'
-        default: true
+        default: false
         required: true
         type: boolean
   workflow_dispatch:
     inputs:
       enable_televip_module:
         description: 'Enable TeleVip module'
-        default: false
+        default: true
         required: true
         type: boolean
       enable_speedhook_module:
@@ -52,7 +52,7 @@ on:
         type: boolean
       enable_re_telegram_module:
         description: 'Enable ReTelegram module'
-        default: true
+        default: false
         required: true
         type: boolean
 
@@ -211,6 +211,9 @@ jobs:
           repository: forkgram/TelegramAndroid
           latest: true
 
+      - name: Remove Old ForkGram APK
+        run: rm -f *compressed.apk
+        shell: bash
       
       - name: Patch ForkGram Client With Modules
         run: |
