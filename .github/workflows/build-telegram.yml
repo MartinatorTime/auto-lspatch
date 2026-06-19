@@ -203,21 +203,6 @@ jobs:
         run: mv lspatch.jar patcher.jar
         shell: bash  
 
-      - name: Download and Patch Telegram Client
-        run: |
-          #Download APK
-          curl -L -o telegram.apk https://telegram.org/dl/android/apk
-
-          #Patch Telegram Client With Modules
-          java -jar patcher.jar -f -d -l 1 --injectdex telegram.apk $(cat module_list.txt)
-
-          java -jar uber-apk-signer-1.3.0.jar --apks *-lspatched.apk --allowResign
-
-          rm *-lspatched.apk telegram.apk
-
-          mv *-aligned-debugSigned.apk telegram-lspatched.apk
-        shell: bash
-
       - name: Download ForkGram Client
         uses: robinraju/release-downloader@v1.13
         with:
@@ -225,25 +210,40 @@ jobs:
           repository: forkgram/TelegramAndroid
           latest: true
 
-      - name: Remove Old ForkGram APK
+      - name: Remove compressed ForkGram APK
         run: rm -f *compressed.apk
         shell: bash
       
-      - name: Patch ForkGram Client With Modules
-        run: |
-          java -jar patcher.jar -l 1 ForkClient*.apk $(cat module_list.txt)
-        shell: bash
 
-      - name: Download And Patch TelegramFOSS Client
+      - name: Download TelegramFOSS Client
         uses: robinraju/release-downloader@v1.13
         with:
           fileName: "TF*.apk"
           repository: Telegram-FOSS-Team/Telegram-FOSS
           latest: true
 
-      - name: Patch TelegramFOSS Client With Modules
+      - name: Patch and Sign Clients
         run: |
-          java -jar patcher.jar -l 1 TF*.apk $(cat module_list.txt)
+          # Define a function to patch, sign, and rename
+          patch_and_sign() {
+            local input_apk=$1
+            local output_name=$2
+            
+            # 1. Patch
+            java -jar patcher.jar -f -d -l 1 $input_apk $(cat module_list.txt)
+            
+            # 2. Sign
+            java -jar uber-apk-signer-1.3.0.jar -a . --allowResign
+            
+            # 3. Rename
+            mv aligned/*-aligned-debugSigned.apk $output_name
+            rm $input_apk *-lspatched.apk
+          }
+
+          # Process each client
+          patch_and_sign "telegram.apk" "Telegram-patched.apk"
+          patch_and_sign "ForkClient*.apk" "ForkGram-patched.apk"
+          patch_and_sign "TF*.apk" "TelegramFOSS-patched.apk"
         shell: bash
 
       - name: Setup Android Build Tools
@@ -255,30 +255,23 @@ jobs:
       - name: Create Release Info
         run: |
           AAPT=$HOME/android-tools/android-13/aapt
-
           chmod +x "$AAPT"
 
-          TG_INFO=$("$AAPT" dump badging telegram*.apk | grep versionName)
-          TG_VersionName=$(echo "$TG_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
-          TG_VersionCode=$(echo "$TG_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
-          TG_Version="$TG_VersionName $TG_VersionCode"
-
-          FORK_INFO=$("$AAPT" dump badging ForkClient*.apk | grep versionName)
-          FORK_VersionName=$(echo "$FORK_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
-          FORK_VersionCode=$(echo "$FORK_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
-          FORK_Version="$FORK_VersionName $FORK_VersionCode"
-
-          TGFOSS_INFO=$("$AAPT" dump badging TF*.apk | grep versionName)
-          TGFOSS_VersionName=$(echo "$TGFOSS_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
-          TGFOSS_VersionCode=$(echo "$TGFOSS_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
-          TGFOSS_Version="$TGFOSS_VersionName $TGFOSS_VersionCode"
+          # Function to get info and rename
+          process_apk() {
+            local file=$1
+            local name=$2
+            INFO=$("$AAPT" dump badging "$file" | grep versionName)
+            VN=$(echo "$INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
+            VC=$(echo "$INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
+            echo "- $name - $VN ($VC)" >> release_body.txt
+            mv "$file" "${name}-${VN}.apk"
+          }
 
           echo "Clients:" >> release_body.txt
-          echo "- Telegram - $TG_Version" >> release_body.txt
-          echo "- ForkGram - $FORK_Version" >> release_body.txt
-          echo "- TelegramFOSS - $TGFOSS_Version" >> release_body.txt
-          echo "" >> release_body.txt
-          echo "Patched at: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> release_body.txt
+          process_apk "Telegram-patched.apk" "Telegram"
+          process_apk "ForkGram-patched.apk" "ForkGram"
+          process_apk "TelegramFOSS-patched.apk" "TelegramFOSS"
         shell: bash
 
       - name: Upload Release
@@ -286,7 +279,7 @@ jobs:
         uses: softprops/action-gh-release@master
         with:
           files: |
-            *-lspatched.apk
+            *.apk
           tag_name: Patched
           draft: false
           body_path: release_body.txt
