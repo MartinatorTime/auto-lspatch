@@ -156,7 +156,7 @@ jobs:
 
       - name: Download TeleVip Module
         if: ${{ github.event.inputs.enable_televip_module == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "app-release.apk"
           repository: Xposed-Modules-Repo/com.my.televip
@@ -169,7 +169,7 @@ jobs:
 
       - name: Download SpeedHook Module
         if: ${{ github.event.inputs.enable_speedhook_module == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "Telegram.Speed.Hook-*.apk"
           repository: araafroyall/Telegram-Speed-Hook
@@ -177,7 +177,7 @@ jobs:
 
       - name: Download Killergram Module
         if: ${{ github.event.inputs.enable_killergram_module == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "Killergram*.apk"
           repository: JeelsBoobz/Killergram
@@ -185,7 +185,7 @@ jobs:
       
       - name: Download UserID Viewer Module
         if: ${{ github.event.inputs.enable_userid_module == 'true' }}  
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "com.alex193a.tguseridviewer_v*_*.apk"
           repository: Xposed-Modules-Repo/com.alex193a.tguseridviewer
@@ -193,7 +193,7 @@ jobs:
 
       - name: Download ReTelegram Module
         if: ${{ github.event.inputs.enable_re_telegram_module == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "app-release.apk"
           repository: hxreborn/Re-Telegram-CherryFork
@@ -206,7 +206,7 @@ jobs:
 
       - name: Download LSPatch Jar from Github
         if: ${{ github.event.inputs.use_lspatch == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "lspatch.jar"
           repository: JingMatrix/LSPatch
@@ -219,7 +219,7 @@ jobs:
 
       - name: Download NPatch Jar from Github
         if: ${{ github.event.inputs.use_npatch == 'true' }}
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "jar.*-release.jar"
           repository: 7723mod/NPatch
@@ -227,7 +227,7 @@ jobs:
 
       - name: Rename NPatch Jar
         if: ${{ github.event.inputs.use_npatch == 'true' }}      
-        run: mv jar.*-release.jar patcher.jar
+        run: mv jar-*-release.jar patcher.jar
         shell: bash  
 
       - name: Download and Patch Telegram Client
@@ -240,7 +240,7 @@ jobs:
         shell: bash
 
       - name: Download ForkGram Client
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "ForkClient*.apk"
           repository: forkgram/TelegramAndroid
@@ -253,7 +253,7 @@ jobs:
         shell: bash
 
       - name: Download And Patch TelegramFOSS Client
-        uses: robinraju/release-downloader@v1
+        uses: robinraju/release-downloader@v1.13
         with:
           fileName: "TF*.apk"
           repository: Telegram-FOSS-Team/Telegram-FOSS
