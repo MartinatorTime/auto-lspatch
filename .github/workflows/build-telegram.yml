@@ -235,8 +235,11 @@ jobs:
           #Download APK
           curl -L -o telegram.apk https://telegram.org/dl/android/apk
 
-          #Patch Telegram Client With Modules
-          java -jar patcher.jar -l 2 telegram.apk $(cat module_list.txt)
+          # Download Bouncy Castle provider
+          curl -L -o bcprov.jar https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk15on/1.70/bcprov-jdk15on-1.70.jar
+
+          # Run NPatch with the provider
+          java -cp "patcher.jar:bcprov.jar" top.nkbe.npatch.patch.NPatch -l 2 telegram.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download ForkGram Client
@@ -264,11 +267,15 @@ jobs:
           java -jar patcher.jar -l 2 TF*.apk $(cat module_list.txt)
         shell: bash
 
+      - name: Setup Android Build Tools
+        run: |
+          mkdir -p $HOME/android-tools
+          curl -sSL https://dl.google.com/android/repository/build-tools_r33.0.2-linux.zip -o build-tools.zip
+          unzip -q build-tools.zip -d $HOME/android-tools
+
       - name: Create Release Info
         run: |
-          curl -sSL https://dl.google.com/android/repository/build-tools_r33.0.2-linux.zip -o build-tools.zip
-          unzip -q build-tools.zip -d build-tools
-          AAPT=build-tools/android-13/aapt
+          AAPT=$HOME/android-tools/android-13/aapt
 
           chmod +x "$AAPT"
 
