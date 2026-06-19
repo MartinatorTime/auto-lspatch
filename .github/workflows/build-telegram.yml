@@ -240,6 +240,7 @@ jobs:
       - name: Patch Telegram
         run: |
           # Use -Djava.security.properties to fix the BKS error
+          curl -L -o telegram.apk https://telegram.org/dl/android/apk
           java -Djava.security.properties=java.security -cp "patcher.jar:bcprov.jar" top.nkbe.npatch.patch.NPatch -l 2 telegram.apk $(cat module_list.txt)
           
           # Verify success before proceeding
