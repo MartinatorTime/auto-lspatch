@@ -234,28 +234,36 @@ jobs:
             local pattern=$1
             local output_name=$2
             
-            # Use 'ls' to find the actual file matching the pattern
+            # Find the input file
             local input_apk=$(ls $pattern 2>/dev/null | head -n 1)
-            
             if [ -z "$input_apk" ]; then
-              echo "Error: No file found matching $pattern! Skipping..."
+              echo "Error: No file found for $pattern! Skipping..."
               return
             fi
-            
-            echo "Processing $input_apk -> $output_name"
             
             # 1. Patch
             java -jar patcher.jar -f -d -l 1 "$input_apk" $(cat module_list.txt)
             
-            # 2. Sign
-            java -jar uber-apk-signer-1.3.0.jar -a *-lspatched.apk --allowResign
+            # 2. Find the lspatched file (this matches your build number naming)
+            local patched_apk=$(ls *-lspatched.apk 2>/dev/null | head -n 1)
             
-            # 3. Rename
-            local base_name="${input_apk%.*}"
-            mv "${base_name}-aligned-debugSigned.apk" "$output_name"
-            
-            # 4. Clean up
-            rm "$input_apk" *-lspatched.apk
+            if [ -f "$patched_apk" ]; then
+                echo "Signing: $patched_apk"
+                
+                # 3. Sign ONLY this file
+                java -jar uber-apk-signer-1.3.0.jar -a "$patched_apk" --allowResign
+                
+                # 4. Rename the output
+                # When signing 'Telegram-439-lspatched.apk', uber-apk-signer creates:
+                # 'Telegram-439-lspatched-aligned-debugSigned.apk'
+                local base_name="${patched_apk%.*}"
+                mv "${base_name}-aligned-debugSigned.apk" "$output_name"
+                
+                # 5. Cleanup inputs and the temp patched file
+                rm "$input_apk" "$patched_apk"
+            else
+                echo "Error: Patching failed for $input_apk"
+            fi
           }
 
           # Process each client
