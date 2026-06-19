@@ -201,7 +201,7 @@ jobs:
           curl -L -o telegram.apk https://telegram.org/dl/android/apk
 
           #Patch Telegram Client With Modules
-          java -jar patcher.jar -l 2 telegram.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 1 telegram.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download ForkGram Client
@@ -217,7 +217,7 @@ jobs:
       
       - name: Patch ForkGram Client With Modules
         run: |
-          java -jar patcher.jar -l 2 ForkClient*.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 1 ForkClient*.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download And Patch TelegramFOSS Client
@@ -229,7 +229,7 @@ jobs:
 
       - name: Patch TelegramFOSS Client With Modules
         run: |
-          java -jar patcher.jar -l 2 TF*.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 1 TF*.apk $(cat module_list.txt)
         shell: bash
 
       - name: Setup Android Build Tools
