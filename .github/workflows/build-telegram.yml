@@ -258,7 +258,7 @@ jobs:
 
           chmod +x "$AAPT"
 
-          TG_INFO=$("$AAPT" dump badging telegram*.apk | grep versionName)
+          TG_INFO=$("$AAPT" dump badging Telegram-patched.apk | grep versionName)
           TG_VersionName=$(echo "$TG_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
           TG_VersionCode=$(echo "$TG_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
           TG_Version="$TG_VersionName $TG_VersionCode"
