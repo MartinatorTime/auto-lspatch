@@ -216,20 +216,17 @@ jobs:
         if: ${{ github.event.inputs.use_npatch == 'true' }}
         uses: robinraju/release-downloader@v1
         with:
-          fileName: "jar-*-release.jar"
+          fileName: "jar.*-release.jar"
           repository: 7723mod/NPatch
           latest: true    
 
       - name: Download and Patch Telegram Client
         run: |
-          # 1. Download BouncyCastle provider to fix the "BKS not found" Java signing crash
-          curl -sSL https://repo1.maven.org/maven2/org/bouncycastle/bcprov-jdk18on/1.78.1/bcprov-jdk18on-1.78.1.jar -o bcprov.jar
+          #Download APK
+          curl -L -o telegram.apk https://telegram.org/dl/android/apk
 
-          # 2. Download Telegram APK using a browser User-Agent with retries
-          wget --tries=5 --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -O telegram.apk https://telegram.org/dl/android/apk
-
-          # 3. Patch Telegram Client (Using classpath -cp to inject BouncyCastle provider)
-          java -cp "jar-*-release.jar:bcprov.jar" top.nkbe.npatch.patch.NPatch -l 2 telegram.apk $(cat module_list.txt)
+          #Patch Telegram Client With Modules
+          java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download ForkGram Client
@@ -238,11 +235,11 @@ jobs:
           fileName: "ForkClient*.apk"
           repository: forkgram/TelegramAndroid
           latest: true
+
       
       - name: Patch ForkGram Client With Modules
         run: |
-          # Use classpath to feed NPatch the BouncyCastle provider
-          java -cp "jar-*-release.jar:bcprov.jar" top.nkbe.npatch.patch.NPatch -l 2 ForkClient*.apk $(cat module_list.txt)
+          java -jar *.jar -l 2 ForkClient*.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download And Patch TelegramFOSS Client
@@ -254,8 +251,7 @@ jobs:
 
       - name: Patch TelegramFOSS Client With Modules
         run: |
-          # Use classpath to feed NPatch the BouncyCastle provider
-          java -cp "jar-*-release.jar:bcprov.jar" top.nkbe.npatch.patch.NPatch -l 2 TF*.apk $(cat module_list.txt)
+          java -jar *.jar -l 2 TF*.apk $(cat module_list.txt)
         shell: bash
 
       - name: Create Release Info
