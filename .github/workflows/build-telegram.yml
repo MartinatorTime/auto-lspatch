@@ -225,7 +225,7 @@ jobs:
       - name: Download Telegram Client
         run: |
           #Download APK
-          curl -L -o telegram.apk https://telegram.org/dl/android/apk
+          wget -O telegram.apk --tries=5 --timeout=60 --waitretry=10 https://telegram.org/dl/android/apk
         shell: bash
 
       - name: Patch and Sign Clients
