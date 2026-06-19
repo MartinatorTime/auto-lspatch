@@ -28,6 +28,16 @@ on:
         default: true
         required: true
         type: boolean
+      use_lspatch:
+        description: 'Use LSPatch'
+        default: false
+        required: true
+        type: boolean
+      use_npatch:
+        description: 'Use NPatch'
+        default: true
+        required: true
+        type: boolean
   workflow_dispatch:
     inputs:
       enable_televip_module:
@@ -52,6 +62,16 @@ on:
         type: boolean
       enable_re_telegram_module:
         description: 'Enable ReTelegram module'
+        default: true
+        required: true
+        type: boolean
+      use_lspatch:
+        description: 'Use LSPatch'
+        default: false
+        required: true
+        type: boolean
+      use_npatch:
+        description: 'Use NPatch'
         default: true
         required: true
         type: boolean
@@ -185,11 +205,20 @@ jobs:
         shell: bash  
 
       - name: Download LSPatch Jar from Github
+        if: ${{ github.event.inputs.use_lspatch == 'true' }}
         uses: robinraju/release-downloader@v1
         with:
           fileName: "lspatch.jar"
           repository: JingMatrix/LSPatch
           latest: true
+      
+      - name: Download NPatch Jar from Github
+        if: ${{ github.event.inputs.use_npatch == 'true' }}
+        uses: robinraju/release-downloader@v1
+        with:
+          fileName: "jar.*-release.jar"
+          repository: 7723mod/NPatch
+          latest: true    
 
       - name: Download and Patch Telegram Client
         run: |
@@ -262,7 +291,7 @@ jobs:
         with:
           files: |
             *-lspatched.apk
-          tag_name: LSpatched
+          tag_name: Patched
           draft: false
           body_path: release_body.txt
         env:
