@@ -1,0 +1,8 @@
+Telegram: 12.8.2 69209
+ForkGram: 12.8.2.0 691709
+TelegramFOSS: 10.14.3 49279
+Telegram-Speed-Hook: TgSpeedHook-v2.1
+Killergram: v1.2.2
+com.alex193a.tguseridviewer: 3-1.2
+LSPatch: v0.8
+com.my.televip: 315-3.5
