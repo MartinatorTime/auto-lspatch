@@ -222,10 +222,10 @@ jobs:
 
       - name: Download and Patch Telegram Client
         run: |
-          #Download APK
-          curl -L -o telegram.apk https://telegram.org/dl/android/apk
+          # Download APK using a browser User-Agent to avoid getting blocked/served an error page
+          curl -fSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -o telegram.apk https://telegram.org/dl/android/apk
 
-          #Patch Telegram Client With Modules
+          # Patch Telegram Client With Modules
           java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
         shell: bash
 
