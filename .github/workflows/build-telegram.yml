@@ -224,10 +224,15 @@ jobs:
 
       - name: Patch and Sign Clients
         run: |
-          # Define a function to patch, sign, and rename
           patch_and_sign() {
             local input_apk=$1
             local output_name=$2
+            
+            # Check if input file exists
+            if [ ! -f "$input_apk" ]; then
+              echo "Error: $input_apk not found! Skipping..."
+              return
+            fi
             
             # 1. Patch
             java -jar patcher.jar -f -d -l 1 $input_apk $(cat module_list.txt)
@@ -236,8 +241,10 @@ jobs:
             java -jar uber-apk-signer-1.3.0.jar -a . --allowResign
             
             # 3. Rename
-            mv aligned/*-aligned-debugSigned.apk $output_name
-            rm $input_apk *-lspatched.apk
+            local base_name="${input_apk%.*}"
+            mv "${base_name}-aligned-debugSigned.apk" "$output_name"
+
+            rm "$input_apk" *-lspatched.apk
           }
 
           # Process each client
