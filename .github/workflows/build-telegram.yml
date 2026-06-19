@@ -213,9 +213,9 @@ jobs:
 
           java -jar uber-apk-signer-1.3.0.jar --apks *-lspatched.apk --allowResign
 
-          mv *-aligned-debugSigned.apk Telegram-patched.apk
-          
-          rm telegram.apk *-lspatched.apk
+          rm *-lspatched.apk telegram.apk
+
+          mv *-aligned-debugSigned.apk telegram-lspatched.apk
         shell: bash
 
       - name: Download ForkGram Client
@@ -258,7 +258,7 @@ jobs:
 
           chmod +x "$AAPT"
 
-          TG_INFO=$("$AAPT" dump badging Telegram-patched.apk | grep versionName)
+          TG_INFO=$("$AAPT" dump badging telegram*.apk | grep versionName)
           TG_VersionName=$(echo "$TG_INFO" | sed -n "s/.*versionName='\([^']*\)'.*/\1/p")
           TG_VersionCode=$(echo "$TG_INFO" | sed -n "s/.*versionCode='\([^']*\)'.*/\1/p")
           TG_Version="$TG_VersionName $TG_VersionCode"
