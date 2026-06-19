@@ -244,7 +244,6 @@ jobs:
             # 1. Patch
             java -jar patcher.jar -f -l 0 "$input_apk" $(cat module_list.txt)
             
-            # 2. Find the lspatched file (this matches your build number naming)
             local patched_apk=$(ls *-lspatched.apk 2>/dev/null | head -n 1)
             
             if [ -f "$patched_apk" ]; then
