@@ -211,7 +211,12 @@ jobs:
           fileName: "lspatch.jar"
           repository: JingMatrix/LSPatch
           latest: true
-      
+
+      - name: Rename LsPatch Jar
+        if: ${{ github.event.inputs.use_lspatch == 'true' }}      
+        run: mv lspatch.jar patcher.jar
+        shell: bash  
+
       - name: Download NPatch Jar from Github
         if: ${{ github.event.inputs.use_npatch == 'true' }}
         uses: robinraju/release-downloader@v1
@@ -220,13 +225,18 @@ jobs:
           repository: 7723mod/NPatch
           latest: true    
 
+      - name: Rename NPatch Jar
+        if: ${{ github.event.inputs.use_npatch == 'true' }}      
+        run: mv jar.*-release.jar patcher.jar
+        shell: bash  
+
       - name: Download and Patch Telegram Client
         run: |
           #Download APK
           curl -L -o telegram.apk https://telegram.org/dl/android/apk
 
           #Patch Telegram Client With Modules
-          java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 2 telegram.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download ForkGram Client
@@ -239,7 +249,7 @@ jobs:
       
       - name: Patch ForkGram Client With Modules
         run: |
-          java -jar *.jar -l 2 ForkClient*.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 2 ForkClient*.apk $(cat module_list.txt)
         shell: bash
 
       - name: Download And Patch TelegramFOSS Client
@@ -251,7 +261,7 @@ jobs:
 
       - name: Patch TelegramFOSS Client With Modules
         run: |
-          java -jar *.jar -l 2 TF*.apk $(cat module_list.txt)
+          java -jar patcher.jar -l 2 TF*.apk $(cat module_list.txt)
         shell: bash
 
       - name: Create Release Info
