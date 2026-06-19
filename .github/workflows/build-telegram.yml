@@ -222,6 +222,12 @@ jobs:
           repository: Telegram-FOSS-Team/Telegram-FOSS
           latest: true
 
+      - name: Download Telegram Client
+        run: |
+          #Download APK
+          curl -L -o telegram.apk https://telegram.org/dl/android/apk
+        shell: bash
+
       - name: Patch and Sign Clients
         run: |
           patch_and_sign() {
