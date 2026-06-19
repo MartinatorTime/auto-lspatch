@@ -220,14 +220,14 @@ jobs:
           repository: 7723mod/NPatch
           latest: true    
 
-      - name: Download and Patch Telegram Client
-        run: |
-          # Download APK using a browser User-Agent to avoid getting blocked/served an error page
-          curl -fSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -o telegram.apk https://telegram.org/dl/android/apk
+      #- name: Download and Patch Telegram Client
+      #  run: |
+      #    # Download APK using a browser User-Agent to avoid getting blocked/served an error page
+      #    curl -fSL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -o telegram.apk https://telegram.org/dl/android/apk
 
           # Patch Telegram Client With Modules
-          java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
-        shell: bash
+      #    java -jar *.jar -l 2 telegram.apk $(cat module_list.txt)
+      #  shell: bash
 
       - name: Download ForkGram Client
         uses: robinraju/release-downloader@v1
