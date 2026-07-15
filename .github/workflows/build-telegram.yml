@@ -138,14 +138,14 @@ jobs:
         if: ${{ github.event.inputs.enable_televip_module == 'true' }}
         uses: robinraju/release-downloader@v1.13
         with:
-          fileName: "*.apk"
+          fileName: "TeleVip.apk"
           repository: Xposed-Modules-Repo/com.my.televip
           latest: true
 
-      - name: Rename Televip Module
-        if: ${{ github.event.inputs.enable_televip_module == 'true' }}      
-        run: mv *.apk TeleVip.apk
-        shell: bash  
+      #- name: Rename Televip Module
+      #  if: ${{ github.event.inputs.enable_televip_module == 'true' }}      
+      #  run: mv *.apk TeleVip.apk
+      #  shell: bash  
 
       - name: Download SpeedHook Module
         if: ${{ github.event.inputs.enable_speedhook_module == 'true' }}
