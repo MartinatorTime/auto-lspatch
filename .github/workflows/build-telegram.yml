@@ -195,12 +195,12 @@ jobs:
       - name: Download LSPatch Jar from Github
         uses: robinraju/release-downloader@v1.13
         with:
-          fileName: "lspatch.jar"
+          fileName: "lspatch-*-release.jar"
           repository: JingMatrix/LSPatch
           latest: true
 
       - name: Rename LsPatch Jar   
-        run: mv lspatch.jar patcher.jar
+        run: mv lspatch-*-release.jar patcher.jar
         shell: bash  
 
       - name: Download ForkGram Client
